@@ -304,4 +304,32 @@ For issues, questions, or concerns, please open an issue on the repository.
 
 ---
 
+## Author
+
+**Lettu Kes dr. Muhammad Sobri Maulana, S.Kom, CEH, OSCP, OSCE**
+
+- 📧 Email: [muhammadsobrimaulana31@gmail.com](mailto:muhammadsobrimaulana31@gmail.com)
+- 💻 GitHub: [github.com/sobri3195](https://github.com/sobri3195)
+- 🌐 Website: [muhammadsobrimaulana.netlify.app](https://muhammadsobrimaulana.netlify.app)
+
+### Connect with Me
+
+- 📺 YouTube: [@muhammadsobrimaulana6013](https://www.youtube.com/@muhammadsobrimaulana6013)
+- 📱 TikTok: [@dr.sobri](https://www.tiktok.com/@dr.sobri)
+- 💬 Telegram: [winlin_exploit](https://t.me/winlin_exploit)
+- 💬 WhatsApp Group: [Join Community](https://chat.whatsapp.com/B8nwRZOBMo64GjTwdXV8Bl)
+
+### Support My Work
+
+If you find this project helpful, consider supporting me:
+
+- ☕ Trakteer: [trakteer.id/g9mkave5gauns962u07t](https://trakteer.id/g9mkave5gauns962u07t)
+- 💳 Lynk: [lynk.id/muhsobrimaulana](https://lynk.id/muhsobrimaulana)
+- 🎨 KaryaKarsa: [karyakarsa.com/muhammadsobrimaulana](https://karyakarsa.com/muhammadsobrimaulana)
+- 💰 Nyawer: [nyawer.co/MuhammadSobriMaulana](https://nyawer.co/MuhammadSobriMaulana)
+- 🛒 Gumroad: [maulanasobri.gumroad.com](https://maulanasobri.gumroad.com/)
+- 🌐 Portfolio: [muhammad-sobri-maulana-kvr6a.sevalla.page](https://muhammad-sobri-maulana-kvr6a.sevalla.page/)
+
+---
+
 **Remember: With great power comes great responsibility. Use ethically and legally.**
