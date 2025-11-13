@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Phone Tracking System</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .disclaimer {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 3px solid #cc0000;
+        }
+        
+        .disclaimer-text {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .status-item {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .status-online {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+        
+        #map {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 600px;
+            overflow-y: auto;
+        }
+        
+        .sidebar h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .device-info {
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .alert-danger {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .geofence-list {
+            margin-top: 20px;
+        }
+        
+        .geofence-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .signal-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .signal-gps {
+            background: #4CAF50;
+        }
+        
+        .signal-bts {
+            background: #ff9800;
+        }
+        
+        .signal-offline {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer">
+        <div class="disclaimer-text">
+            ⚠️ DISCLAIMER: Penggunaan alat ini hanya sah untuk melacak perangkat milik sendiri atau dengan izin tertulis dari pemilik. 
+            Pelanggaran akan dikenai sanksi hukum sesuai UU ITE Pasal 27 ayat (1). 
+            Data lokasi akan otomatis dihapus setelah 30 hari.
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Real-Time Phone Tracking Dashboard</h1>
+            <div class="status">
+                <div class="status-item status-online" id="connection-status">
+                    <span class="signal-indicator signal-gps"></span>
+                    Connected
+                </div>
+                <div class="status-item" id="last-update">
+                    Last Update: Never
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <div class="sidebar">
+                <h2>Device Information</h2>
+                <div class="device-info" id="device-info">
+                    <div class="info-item">
+                        <div class="info-label">Device ID:</div>
+                        <div id="device-id">Not Connected</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Location Source:</div>
+                        <div id="location-source">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Accuracy:</div>
+                        <div id="accuracy">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Battery:</div>
+                        <div id="battery">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Speed:</div>
+                        <div id="speed">-</div>
+                    </div>
+                </div>
+                
+                <h2>Recent Alerts</h2>
+                <div id="alerts-container">
+                    <div class="alert alert-info">
+                        No alerts at this time
+                    </div>
+                </div>
+                
+                <h2>Geofences</h2>
+                <button class="btn btn-primary" onclick="createGeofence()" style="width: 100%; margin-bottom: 10px;">
+                    Add Geofence
+                </button>
+                <div class="geofence-list" id="geofence-list">
+                    <div style="color: #666; font-size: 13px;">No geofences configured</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const deviceId = 'DEMO_DEVICE_001';
+        let map, marker, geofenceCircles = [];
+        
+        map = L.map('map').setView([-6.2088, 106.8456], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            document.getElementById('connection-status').innerHTML = '<span class="signal-indicator signal-gps"></span>Connected';
+            document.getElementById('connection-status').className = 'status-item status-online';
+            
+            socket.emit('subscribe', { device_id: deviceId });
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            document.getElementById('connection-status').innerHTML = '<span class="signal-indicator signal-offline"></span>Disconnected';
+            document.getElementById('connection-status').className = 'status-item status-offline';
+        });
+        
+        socket.on('location_update', (data) => {
+            console.log('Location update:', data);
+            updateMap(data.location);
+            updateDeviceInfo(data.location);
+            
+            if (data.geofence_events && data.geofence_events.length > 0) {
+                data.geofence_events.forEach(event => {
+                    addAlert(event.event_type === 'enter' ? 'info' : 'warning', 
+                            `Device ${event.event_type} geofence`);
+                });
+            }
+        });
+        
+        function updateMap(location) {
+            const lat = location.latitude;
+            const lng = location.longitude;
+            
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            
+            map.setView([lat, lng], 15);
+            
+            marker.bindPopup(`
+                <b>Device Location</b><br>
+                Source: ${location.source}<br>
+                Time: ${new Date(location.timestamp).toLocaleString()}<br>
+                Accuracy: ${location.accuracy}m
+            `);
+        }
+        
+        function updateDeviceInfo(location) {
+            document.getElementById('device-id').textContent = location.device_id;
+            document.getElementById('location-source').innerHTML = 
+                `<span class="signal-indicator signal-${location.source.toLowerCase()}"></span>${location.source}`;
+            document.getElementById('accuracy').textContent = location.accuracy ? `${location.accuracy}m` : '-';
+            document.getElementById('battery').textContent = location.battery_level ? `${location.battery_level}%` : '-';
+            document.getElementById('speed').textContent = location.speed ? `${location.speed} km/h` : '-';
+            document.getElementById('last-update').textContent = `Last Update: ${new Date(location.timestamp).toLocaleTimeString()}`;
+        }
+        
+        function addAlert(type, message) {
+            const alertsContainer = document.getElementById('alerts-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsContainer.insertBefore(alert, alertsContainer.firstChild);
+            
+            if (alertsContainer.children.length > 5) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+        }
+        
+        function createGeofence() {
+            alert('Geofence creation feature - integrate with your backend API');
+        }
+        
+        setInterval(() => {
+            socket.emit('request_location', { device_id: deviceId });
+        }, 5000);
+    </script>
+</body>
+</html>

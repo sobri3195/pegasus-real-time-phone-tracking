@@ -4,8 +4,7 @@ import secrets
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 from functools import wraps
 from flask import request, jsonify
@@ -20,12 +19,11 @@ class SecurityManager:
         self.fernet = Fernet(self.encryption_key)
     
     def _derive_encryption_key(self, password: str) -> bytes:
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b'tracking_system_salt',
-            iterations=100000,
-            backend=default_backend()
+            iterations=100000
         )
         key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
         return key
